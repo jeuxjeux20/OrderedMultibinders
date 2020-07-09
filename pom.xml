@@ -10,7 +10,7 @@
     <version>1.0</version>
 
     <name>OrderedMultibinders</name>
-    <description>Order Guice multibinder elements with annotations</description>
+    <description>Order Guice multibinder elements with annotations.</description>
     <url>https://github.com/jeuxjeux20/ordered-multibinders</url>
 
     <scm>

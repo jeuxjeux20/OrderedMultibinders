@@ -16,12 +16,14 @@ import java.lang.annotation.*;
 public @interface Order {
     /**
      * Returns the classes that this class should precede.
+     *
      * @return the classes that this class should precede
      */
     Class<?>[] before() default {};
 
     /**
      * Returns the classes that this class should succeed.
+     *
      * @return the classes that this class should succeed
      */
     Class<?>[] after() default {};

@@ -10,12 +10,12 @@ import com.google.inject.util.Types;
 
 import java.util.EnumSet;
 
-public class FactoriesDemoRunner extends DemoRunner {
-    public FactoriesDemoRunner() {
+public class FactoriesDemo extends DemoRunner {
+    public FactoriesDemo() {
         this(EnumSet.of(Detail.CONTENTS));
     }
 
-    public FactoriesDemoRunner(EnumSet<Detail> detail) {
+    public FactoriesDemo(EnumSet<Detail> detail) {
         super("Factories", detail, new TestModule());
     }
 
