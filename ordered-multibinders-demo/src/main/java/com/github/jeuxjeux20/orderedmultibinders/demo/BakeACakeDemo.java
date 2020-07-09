@@ -22,7 +22,7 @@ public class BakeACakeDemo extends DemoRunner {
         }
     }
 
-    private static final class BaseCakeModule extends AbstractModule {
+    static final class BaseCakeModule extends AbstractModule {
         @Override
         protected void configure() {
             Multibinder<RecipeOperation> operations = Multibinder.newSetBinder(binder(), RecipeOperation.class);
@@ -33,7 +33,7 @@ public class BakeACakeDemo extends DemoRunner {
             operations.addBinding().to(WaitUntilItIsColdEnough.class);
         }
     }
-
+    
     static class PreheatOven extends RecipeOperation {}
 
     static class AddIngredients extends RecipeOperation {}
@@ -42,7 +42,7 @@ public class BakeACakeDemo extends DemoRunner {
 
     static class WaitUntilItIsColdEnough extends RecipeOperation {}
 
-    private static final class SprinklesCakeModule extends AbstractModule {
+    static final class SprinklesCakeModule extends AbstractModule {
         @Override
         protected void configure() {
             Multibinder<RecipeOperation> operations = Multibinder.newSetBinder(binder(), RecipeOperation.class);

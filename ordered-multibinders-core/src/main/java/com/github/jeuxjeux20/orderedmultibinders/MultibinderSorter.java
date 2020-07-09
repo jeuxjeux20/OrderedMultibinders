@@ -118,13 +118,19 @@ final class MultibinderSorter {
         public BindingGraph createGraph() {
             BindingGraph graph = new BindingGraph(context);
 
-            context.bindings.forEach(graph::addVertex);
+            addVertexes(graph);
             createImplicitEdges(graph);
             createExplicitEdges(graph);
             repositionExplicitEdges(graph, RepositioningDirection.HEAD);
             repositionExplicitEdges(graph, RepositioningDirection.TAIL);
 
             return graph;
+        }
+
+        private void addVertexes(BindingGraph graph) {
+            for (Binding<?> binding : context.bindings) {
+                graph.addVertex(binding);
+            }
         }
 
         private void createImplicitEdges(BindingGraph graph) {
