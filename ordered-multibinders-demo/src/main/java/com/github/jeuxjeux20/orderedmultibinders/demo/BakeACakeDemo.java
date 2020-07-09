@@ -33,7 +33,7 @@ public class BakeACakeDemo extends DemoRunner {
             operations.addBinding().to(WaitUntilItIsColdEnough.class);
         }
     }
-    
+
     static class PreheatOven extends RecipeOperation {}
 
     static class AddIngredients extends RecipeOperation {}

@@ -58,7 +58,7 @@ final class MultibinderSorter {
             return context.bindings;
         }
 
-        Comparator<Binding<?>> comparator = new TieBreakerBindingComparator(context);
+        Comparator<Binding<?>> comparator = new BindingListPositionComparator(context);
         TopologicalOrderIterator<Binding<?>, BindingEdge> topologicalIterator =
                 new TopologicalOrderIterator<>(context.graph, comparator);
 
@@ -80,12 +80,12 @@ final class MultibinderSorter {
             this.context = context;
         }
 
-        public void setExplicit(boolean explicit) {
-            isExplicit = explicit;
+        public boolean isExplicit() {
+            return isExplicit;
         }
 
-        public boolean isImplicit() {
-            return !isExplicit;
+        public void setExplicit(boolean explicit) {
+            isExplicit = explicit;
         }
 
         @Override
@@ -110,9 +110,12 @@ final class MultibinderSorter {
      */
     private static final class BindingGraphFactory {
         private final SortContext context;
+        private final BindingListPositionComparator bindingListPositionComparator;
 
         BindingGraphFactory(SortContext context) {
             this.context = context;
+
+            this.bindingListPositionComparator = new BindingListPositionComparator(context);
         }
 
         public BindingGraph createGraph() {
@@ -121,8 +124,8 @@ final class MultibinderSorter {
             addVertexes(graph);
             createImplicitEdges(graph);
             createExplicitEdges(graph);
-            repositionExplicitEdges(graph, RepositioningDirection.HEAD);
-            repositionExplicitEdges(graph, RepositioningDirection.TAIL);
+            flattenEdges(graph, FlatteningDirection.HEAD);
+            flattenEdges(graph, FlatteningDirection.TAIL);
 
             return graph;
         }
@@ -164,80 +167,32 @@ final class MultibinderSorter {
             }
         }
 
-        private void repositionExplicitEdges(BindingGraph graph, RepositioningDirection direction) {
+        private void flattenEdges(BindingGraph graph, FlatteningDirection direction) {
             for (Binding<?> binding : context.bindings) {
                 List<BindingEdge> edges = new ArrayList<>(direction.getEdges(graph, binding));
 
                 if (edges.size() > 1) {
-                    // Here we make sure that elements explicitly ordered using
-                    // @Order get BEFORE ones ordered implicitly (those by their multibinder order).
-                    //
-                    // Behavior:
-                    // Consider a DAG with vertexes a, b, c, d.
-                    //             +-------+
-                    //             |       |
-                    //             |   a   |
-                    //             |       |
-                    //     +-------+---+---+-------+
-                    //     |           |           |
-                    // +---v---+   +---v---+   +---v---+
-                    // |       |   |       |   |       |
-                    // |   b   |   |   c   |   |   d   |
-                    // |  (i)  |   |  (e)  |   |  (e)  |
-                    // +-------+   +-------+   +-------+
-                    // Edges (a, b) are implicit and (a, c) and (a, d) are explicit.
-                    // Only one implicit edge may be present.
-                    //
-                    // The goal is to:
-                    //  * remove the edge between a and b
-                    //  * create an edge from each explicit edge to b (c -> b, d -> b)
-                    //
-                    // The example above, once processed, should get this result:
-                    //          +-------+
-                    //          |       |
-                    //          |   a   |
-                    //          |       |
-                    //     +----+-------+----+
-                    //     |                 |
-                    // +---v---+         +---v---+
-                    // |       |         |       |
-                    // |   c   |         |   d   |
-                    // |  (e)  |         |  (e)  |
-                    // +-------+----+----+-------+
-                    //              |
-                    //          +---v---+
-                    //          |       |
-                    //          |   b   |
-                    //          |  (e)  |
-                    //          +-------+
-                    //
-                    // We can also do it reverse by:
-                    // * removing the edge between b and a
-                    // * create an edge from b to each explicit edge (b -> c, b -> d)
-                    List<BindingEdge> explicitEdges = new LinkedList<>();
-                    BindingEdge implicitEdge = null;
+                    // The ordering is determined by whoever comes first in the element list.
+                    // The goal is to feel like you're using insert(item) to add stuff.
 
-                    for (BindingEdge edge : edges) {
-                        if (edge.isImplicit()) {
-                            if (implicitEdge != null) {
-                                throw new IllegalStateException("There cannot be more than one implicit edge.");
-                            }
-                            implicitEdge = edge;
-                        } else {
-                            explicitEdges.add(edge);
-                        }
-                    }
+                    edges.sort((a, b) -> {
+                        Binding<?> aEndpoint = direction.getEndpoint(graph, a);
+                        Binding<?> bEndpoint = direction.getEndpoint(graph, b);
 
-                    if (implicitEdge != null && !explicitEdges.isEmpty()) {
-                        Binding<?> newTarget = direction.getEndpoint(graph, implicitEdge);
+                        return bindingListPositionComparator.compare(bEndpoint, aEndpoint);
+                    });
 
-                        graph.removeEdge(implicitEdge);
+                    Binding<?> lastEndpoint = direction.getEndpoint(graph, edges.get(0));
 
-                        for (BindingEdge explicitEdge : explicitEdges) {
-                            Binding<?> newSource = direction.getEndpoint(graph, explicitEdge);
+                    // Ignore the first edge.
+                    for (int i = 1; i < edges.size(); i++) {
+                        BindingEdge edge = edges.get(i);
+                        Binding<?> edgeEndpoint = direction.getEndpoint(graph, edge);
 
-                            direction.addEdge(graph, newSource, newTarget);
-                        }
+                        graph.removeEdge(edge);
+                        direction.addEdge(graph, lastEndpoint, edgeEndpoint);
+
+                        lastEndpoint = edgeEndpoint;
                     }
                 }
             }
@@ -281,7 +236,7 @@ final class MultibinderSorter {
                     " and " + otherOrderedBinding.getIdentifier() + ".");
         }
 
-        private enum RepositioningDirection {
+        private enum FlatteningDirection {
             HEAD,
             TAIL;
 
@@ -307,10 +262,10 @@ final class MultibinderSorter {
         }
     }
 
-    private static final class TieBreakerBindingComparator implements Comparator<Binding<?>> {
+    private static final class BindingListPositionComparator implements Comparator<Binding<?>> {
         private final SortContext context;
 
-        public TieBreakerBindingComparator(SortContext context) {
+        public BindingListPositionComparator(SortContext context) {
             this.context = context;
         }
 
