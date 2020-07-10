@@ -6,6 +6,8 @@ import com.github.jeuxjeux20.orderedmultibinders.Placeholders;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.IdentifiedAsOrderedBindingTransformer;
 import org.junit.jupiter.api.Test;
 
+import static com.github.jeuxjeux20.orderedmultibinders.TestOrderedBindings.createOrderedBinding;
+
 public class IdentifiedAsOrderedBindingTransformerTests extends OrderedBindingTransformerTestBase {
     static final OrderedBindingTransformer TRANSFORMER = new IdentifiedAsOrderedBindingTransformer();
 

@@ -1,12 +1,10 @@
 package com.github.jeuxjeux20.orderedmultibinders.binding;
 
-import com.github.jeuxjeux20.orderedmultibinders.IdentifiedAs;
 import com.github.jeuxjeux20.orderedmultibinders.OrderedBindingAnnotation;
 import com.github.jeuxjeux20.orderedmultibinders.Placeholders;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.AnnotationsOrderedBindingTransformer;
 import com.google.inject.TypeLiteral;
 import com.google.inject.util.Types;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.List;
 
+import static com.github.jeuxjeux20.orderedmultibinders.TestOrderedBindings.createOrderedBinding;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AnnotationsOrderedBindingTransformerTests extends OrderedBindingTransformerTestBase {

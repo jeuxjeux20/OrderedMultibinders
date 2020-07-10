@@ -1,6 +1,7 @@
 package com.github.jeuxjeux20.orderedmultibinders.demo;
 
 import com.github.jeuxjeux20.orderedmultibinders.OrderedMultibinders;
+import com.github.jeuxjeux20.orderedmultibinders.config.SortingConfiguration;
 import com.github.jeuxjeux20.orderedmultibinders.util.MultibinderFinder;
 import com.google.inject.Module;
 import com.google.inject.*;
@@ -34,7 +35,7 @@ public class DemoRunner {
             printMultibindersBindings("UNSORTED", modules);
         }
 
-        Module sortedModule = OrderedMultibinders.sort(modules);
+        Module sortedModule = OrderedMultibinders.sort(getConfiguration(), modules);
         if (detail.contains(Detail.BINDINGS)) {
             printMultibindersBindings("SORTED", sortedModule);
         }
@@ -70,6 +71,10 @@ public class DemoRunner {
             multibinderContentBindings.forEach(System.out::println);
         }
         System.out.println();
+    }
+
+    protected SortingConfiguration getConfiguration() {
+        return SortingConfiguration.DEFAULT;
     }
 
     private void printInfo(String string) {

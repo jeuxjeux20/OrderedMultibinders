@@ -1,11 +1,16 @@
 package com.github.jeuxjeux20.orderedmultibinders;
 
+import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBinding;
+import com.github.jeuxjeux20.orderedmultibinders.config.DefaultPositionProvider;
+import com.github.jeuxjeux20.orderedmultibinders.config.SortingConfiguration;
+import com.github.jeuxjeux20.orderedmultibinders.config.UnresolvableClassHandling;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Module;
 import com.google.inject.*;
 import com.google.inject.multibindings.Multibinder;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -28,23 +33,32 @@ public class OrderedMultibinderTests {
     }
 
     @Test
-    void inserted_after_when_last() {
-        testItems(InsertedAfterWhenLast.EXPECTED_ITEMS, InsertedAfterWhenLast.TEST_ITEMS);
+    void uses_multibinder_set_position_on_conflict() {
+        testItems(PositionConflict.ITEMS);
     }
 
     @Test
-    void inserted_before_when_last() {
-        testItems(InsertedBeforeWhenLast.EXPECTED_ITEMS, InsertedBeforeWhenLast.TEST_ITEMS);
+    void before_first_with_negative_position() {
+        testItems(BeforeFirstWithNegativePosition.EXPECTED_ITEMS,
+                BeforeFirstWithNegativePosition.TEST_ITEMS);
     }
 
     @Test
-    void last_item_after_when_first() {
-        testItems(LastItemAfterWhenFirst.EXPECTED_ITEMS, LastItemAfterWhenFirst.TEST_ITEMS);
+    void before_in_between_with_positive_position() {
+        testItems(BeforeInBetweenWithPositivePosition.EXPECTED_ITEMS,
+                BeforeInBetweenWithPositivePosition.TEST_ITEMS);
     }
 
     @Test
-    void first_item_before_when_first() {
-        testItems(FirstItemBeforeWhenFirst.EXPECTED_ITEMS, FirstItemBeforeWhenFirst.TEST_ITEMS);
+    void after_in_between_with_negative_position() {
+        testItems(AfterInBetweenWithNegativePosition.EXPECTED_ITEMS,
+                AfterInBetweenWithNegativePosition.TEST_ITEMS);
+    }
+
+    @Test
+    void after_last_with_positive_position() {
+        testItems(AfterLastWithPositivePosition.EXPECTED_ITEMS,
+                AfterLastWithPositivePosition.TEST_ITEMS);
     }
 
     @Test
@@ -58,8 +72,22 @@ public class OrderedMultibinderTests {
     }
 
     @Test
-    void irresolvable_identifier_ordered_throws() {
-        assertThrows(UnableToResolveClassAsBindingException.class, () -> testItems(IrresolvableIdentifier.ITEMS));
+    void irresolvable_identifier_ordered_throw_handling_throws() {
+        SortingConfiguration config = SortingConfiguration.builder()
+                .unresolvableClassHandling(UnresolvableClassHandling.THROW)
+                .build();
+
+        assertThrows(UnableToResolveClassAsBindingException.class,
+                () -> testItems(IrresolvableIdentifier.ITEMS, config));
+    }
+
+    @Test
+    void irresolvable_identifier_ordered_ignore_handling_ignores() {
+        SortingConfiguration config = SortingConfiguration.builder()
+                .unresolvableClassHandling(UnresolvableClassHandling.IGNORE)
+                .build();
+
+        testItems(IrresolvableIdentifier.ITEMS, config);
     }
 
     @Test
@@ -87,17 +115,25 @@ public class OrderedMultibinderTests {
         assertTrue(set.isEmpty());
     }
 
-    private void testItems(List<Object> expectedItems, List<Object> testItems) {
+    private void testItems(List<Object> expectedItems, List<Object> testItems, SortingConfiguration configuration) {
         Module module = new TestItemsModule(testItems);
 
-        module = OrderedMultibinders.sort(module);
+        module = OrderedMultibinders.sort(configuration, module);
         Set<Object> set = resolveSet(module);
 
         assertIterableEquals(expectedItems, set);
     }
 
+    private void testItems(List<Object> expectedItems, List<Object> testItems) {
+        testItems(expectedItems, testItems, SortingConfiguration.DEFAULT);
+    }
+
+    private void testItems(List<Object> items, SortingConfiguration configuration) {
+        testItems(items, items, configuration);
+    }
+
     private void testItems(List<Object> items) {
-        testItems(items, items);
+        testItems(items, SortingConfiguration.DEFAULT);
     }
 
     Set<Object> resolveSet(Module module) {
@@ -174,52 +210,72 @@ public class OrderedMultibinderTests {
         enum Last {INSTANCE}
     }
 
-    static final class InsertedAfterWhenLast {
-        static ImmutableList<Object> TEST_ITEMS = ImmutableList.of(First.INSTANCE, Second.INSTANCE, PutMeInBetween.INSTANCE);
-        static ImmutableList<Object> EXPECTED_ITEMS = ImmutableList.of(First.INSTANCE, PutMeInBetween.INSTANCE, Second.INSTANCE);
+    static class PositionConflict {
+        static ImmutableList<Object> ITEMS = ImmutableList.of(First.INSTANCE, Second.INSTANCE, Last.INSTANCE);
 
         enum First {INSTANCE}
-
-        enum Second {INSTANCE}
 
         @Order(after = First.class)
-        enum PutMeInBetween {INSTANCE}
-    }
-
-    static final class InsertedBeforeWhenLast {
-        static ImmutableList<Object> TEST_ITEMS = ImmutableList.of(First.INSTANCE, Second.INSTANCE, PutMeInBetween.INSTANCE);
-        static ImmutableList<Object> EXPECTED_ITEMS = ImmutableList.of(First.INSTANCE, PutMeInBetween.INSTANCE, Second.INSTANCE);
-
-        enum First {INSTANCE}
-
-        enum Second {INSTANCE}
-
-        @Order(before = Second.class)
-        enum PutMeInBetween {INSTANCE}
-    }
-
-    static final class LastItemAfterWhenFirst {
-        static ImmutableList<Object> TEST_ITEMS = ImmutableList.of(Last.INSTANCE, First.INSTANCE, Second.INSTANCE);
-        static ImmutableList<Object> EXPECTED_ITEMS = ImmutableList.of(First.INSTANCE, Second.INSTANCE, Last.INSTANCE);
-
-        enum First {INSTANCE}
-
         enum Second {INSTANCE}
 
         @Order(after = First.class)
         enum Last {INSTANCE}
     }
 
-    static final class FirstItemBeforeWhenFirst {
-        static ImmutableList<Object> TEST_ITEMS = ImmutableList.of(First.INSTANCE, Second.INSTANCE, Last.INSTANCE);
-        static ImmutableList<Object> EXPECTED_ITEMS = ImmutableList.of(First.INSTANCE, Second.INSTANCE, Last.INSTANCE);
+    static final class BeforeFirstWithNegativePosition {
+        static ImmutableList<Object> TEST_ITEMS
+                = ImmutableList.of(First.INSTANCE, Last.INSTANCE, PutMeFirst.INSTANCE);
+        static ImmutableList<Object> EXPECTED_ITEMS
+                = ImmutableList.of(PutMeFirst.INSTANCE, First.INSTANCE, Last.INSTANCE);
 
-        @Order(before = Last.class)
         enum First {INSTANCE}
 
-        enum Second {INSTANCE}
+        enum Last {INSTANCE}
+
+        @Order(before = Last.class, position = -1)
+        enum PutMeFirst {INSTANCE}
+    }
+
+    static final class BeforeInBetweenWithPositivePosition {
+        static ImmutableList<Object> TEST_ITEMS
+                = ImmutableList.of(First.INSTANCE, Last.INSTANCE, PutMeInBetween.INSTANCE);
+        static ImmutableList<Object> EXPECTED_ITEMS
+                = ImmutableList.of(First.INSTANCE, PutMeInBetween.INSTANCE, Last.INSTANCE);
+
+        enum First {INSTANCE}
 
         enum Last {INSTANCE}
+
+        @Order(before = Last.class, position = 1)
+        enum PutMeInBetween {INSTANCE}
+    }
+
+    static final class AfterInBetweenWithNegativePosition {
+        static ImmutableList<Object> TEST_ITEMS
+                = ImmutableList.of(First.INSTANCE, Last.INSTANCE, PutMeInBetween.INSTANCE);
+        static ImmutableList<Object> EXPECTED_ITEMS
+                = ImmutableList.of(First.INSTANCE, PutMeInBetween.INSTANCE, Last.INSTANCE);
+
+        enum First {INSTANCE}
+
+        enum Last {INSTANCE}
+
+        @Order(after = First.class, position = -1)
+        enum PutMeInBetween {INSTANCE}
+    }
+
+    static final class AfterLastWithPositivePosition {
+        static ImmutableList<Object> TEST_ITEMS
+                = ImmutableList.of(First.INSTANCE, PutMeLast.INSTANCE, Last.INSTANCE);
+        static ImmutableList<Object> EXPECTED_ITEMS
+                = ImmutableList.of(First.INSTANCE, Last.INSTANCE, PutMeLast.INSTANCE);
+
+        enum First {INSTANCE}
+
+        enum Last {INSTANCE}
+
+        @Order(after = Last.class, position = 1)
+        enum PutMeLast {INSTANCE}
     }
 
     // Exceptions

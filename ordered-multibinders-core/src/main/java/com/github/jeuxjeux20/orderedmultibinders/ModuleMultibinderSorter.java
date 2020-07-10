@@ -1,10 +1,12 @@
 package com.github.jeuxjeux20.orderedmultibinders;
 
+import com.github.jeuxjeux20.orderedmultibinders.config.SortingConfiguration;
 import com.github.jeuxjeux20.orderedmultibinders.util.MultibinderFinder;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binding;
 import com.google.inject.Module;
-import com.google.inject.multibindings.*;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.multibindings.MultibinderBinding;
 import com.google.inject.spi.Element;
 import com.google.inject.spi.Elements;
 
@@ -18,14 +20,16 @@ import java.util.List;
  */
 final class ModuleMultibinderSorter {
     private final ImmutableSet<Module> modules;
+    private final SortingConfiguration configuration;
 
-    ModuleMultibinderSorter(Iterable<? extends Module> modules) {
-         this.modules = ImmutableSet.copyOf(modules);
+    ModuleMultibinderSorter(Iterable<? extends Module> modules, SortingConfiguration configuration) {
+        this.modules = ImmutableSet.copyOf(modules);
+        this.configuration = configuration;
     }
 
     public Module sort() {
         List<Element> allElements = new ArrayList<>(Elements.getElements(modules));
-        MultibinderSorter multibinderSorter = new MultibinderSorter(allElements);
+        MultibinderSorter multibinderSorter = new MultibinderSorter(allElements, configuration);
 
         for (MultibinderBinding<?> multibinder : MultibinderFinder.findMultibinders(allElements)) {
             List<Binding<?>> sortedBindings = multibinderSorter.sort(multibinder);

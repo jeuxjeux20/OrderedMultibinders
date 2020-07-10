@@ -7,6 +7,7 @@ import com.github.jeuxjeux20.orderedmultibinders.internal.binding.GenericParamet
 import com.google.inject.TypeLiteral;
 import org.junit.jupiter.api.Test;
 
+import static com.github.jeuxjeux20.orderedmultibinders.TestOrderedBindings.createOrderedBinding;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class GenericParameterOrderedBindingTransformerTests extends OrderedBindingTransformerTestBase {

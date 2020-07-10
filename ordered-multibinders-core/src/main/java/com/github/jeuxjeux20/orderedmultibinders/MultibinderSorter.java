@@ -1,6 +1,8 @@
 package com.github.jeuxjeux20.orderedmultibinders;
 
 import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBinding;
+import com.github.jeuxjeux20.orderedmultibinders.config.SortingConfiguration;
+import com.github.jeuxjeux20.orderedmultibinders.config.UnresolvableClassHandling;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.OrderedBindingBiMapFactory;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.OrderedBindingFactory;
 import com.github.jeuxjeux20.orderedmultibinders.util.MultibinderFinder;
@@ -12,12 +14,15 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.multibindings.MultibinderBinding;
 import com.google.inject.spi.Element;
-import org.jgrapht.Graph;
+import org.jetbrains.annotations.Nullable;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Sorts a {@link Multibinder}'s elements according to their @{@link Order} annotation.
@@ -25,9 +30,11 @@ import java.util.*;
 final class MultibinderSorter {
     private final List<Element> elements;
     private final OrderedBindingFactory orderedBindingFactory = OrderedBindingFactory.DEFAULT;
+    private final SortingConfiguration configuration;
 
-    MultibinderSorter(List<Element> elements) {
+    MultibinderSorter(List<Element> elements, SortingConfiguration configuration) {
         this.elements = elements;
+        this.configuration = configuration;
     }
 
     public List<Binding<?>> sort(MultibinderBinding<?> multibinder) {
@@ -58,11 +65,38 @@ final class MultibinderSorter {
             return context.bindings;
         }
 
-        Comparator<Binding<?>> comparator = new BindingListPositionComparator(context);
+        Comparator<Binding<?>> listPositionComparator = new BindingListPositionComparator(context);
         TopologicalOrderIterator<Binding<?>, BindingEdge> topologicalIterator =
-                new TopologicalOrderIterator<>(context.graph, comparator);
+                new TopologicalOrderIterator<>(context.graph, (a, b) -> {
+                    int aPosition = findPosition(context, a);
+                    int bPosition = findPosition(context, b);
+
+                    int positionComparison = Integer.compare(aPosition, bPosition);
+                    if (positionComparison != 0) {
+                        return positionComparison;
+                    } else {
+                        return listPositionComparator.compare(a, b);
+                    }
+                });
 
         return ImmutableList.copyOf(topologicalIterator);
+    }
+
+    private int findPosition(SortContext context, Binding<?> binding) {
+        OrderedBinding orderedBinding = context.orderedBindings.get(binding);
+        Order order = orderedBinding.getOrder();
+
+        int position = 0;
+
+        if (order != null) {
+            position = order.position();
+        }
+
+        if (position == 0) {
+            position = configuration.getDefaultPosition().get(orderedBinding);
+        }
+        return position;
+
     }
 
     private static final class BindingGraph extends DirectedAcyclicGraph<Binding<?>, BindingEdge> {
@@ -90,175 +124,12 @@ final class MultibinderSorter {
 
         @Override
         public String toString() {
-            return getIdentifier((Binding<?>) getSource()) + " -> " +
+            return getIdentifier((Binding<?>) getSource()) + " " +
                    getIdentifier((Binding<?>) getTarget()) + (isExplicit ? " [explicit]" : " [implicit]");
         }
 
         private String getIdentifier(Binding<?> binding) {
-            return context.orderedBindings.get(binding).getIdentifier().toString();
-        }
-    }
-
-    /**
-     * Creates the Directed Acyclic Graph (DAG) of a list of bindings.
-     * <p>
-     * Edges are created using the {@link Order} annotation contained in the binding's (<i>b</i>) class:
-     * <ul>
-     *     <li>Each binding (<i>a</i>) in {@link Order#before()} creates an edge such as <i>a -> b</i></li>
-     *     <li>Each binding (<i>a</i>) in {@link Order#after()} creates an edge such as <i>b -> a</i></li>
-     * </ul>
-     */
-    private static final class BindingGraphFactory {
-        private final SortContext context;
-        private final BindingListPositionComparator bindingListPositionComparator;
-
-        BindingGraphFactory(SortContext context) {
-            this.context = context;
-
-            this.bindingListPositionComparator = new BindingListPositionComparator(context);
-        }
-
-        public BindingGraph createGraph() {
-            BindingGraph graph = new BindingGraph(context);
-
-            addVertexes(graph);
-            createImplicitEdges(graph);
-            createExplicitEdges(graph);
-            flattenEdges(graph, FlatteningDirection.HEAD);
-            flattenEdges(graph, FlatteningDirection.TAIL);
-
-            return graph;
-        }
-
-        private void addVertexes(BindingGraph graph) {
-            for (Binding<?> binding : context.bindings) {
-                graph.addVertex(binding);
-            }
-        }
-
-        private void createImplicitEdges(BindingGraph graph) {
-            List<Binding<?>> bindings = context.bindings;
-
-            for (int i = 0; i < bindings.size() - 1; i++) {
-                Binding<?> binding = bindings.get(i);
-                Binding<?> nextBinding = bindings.get(i + 1);
-
-                if (isImplicitCandidate(binding) && isImplicitCandidate(nextBinding)) {
-                    BindingEdge edge = graph.addEdge(binding, nextBinding);
-                    edge.setExplicit(false);
-                }
-            }
-        }
-
-        private void createExplicitEdges(BindingGraph graph) {
-            for (Binding<?> binding : context.bindings) {
-                Order order = context.orderedBindings.get(binding).getOrder();
-                if (order == null) {
-                    continue;
-                }
-
-                for (Class<?> beforeClass : order.before()) {
-                    addExplicitEdge(graph, binding, findByClassOrThrow(beforeClass));
-                }
-
-                for (Class<?> afterClass : order.after()) {
-                    addExplicitEdge(graph, findByClassOrThrow(afterClass), binding);
-                }
-            }
-        }
-
-        private void flattenEdges(BindingGraph graph, FlatteningDirection direction) {
-            for (Binding<?> binding : context.bindings) {
-                List<BindingEdge> edges = new ArrayList<>(direction.getEdges(graph, binding));
-
-                if (edges.size() > 1) {
-                    // The ordering is determined by whoever comes first in the element list.
-                    // The goal is to feel like you're using insert(item) to add stuff.
-
-                    edges.sort((a, b) -> {
-                        Binding<?> aEndpoint = direction.getEndpoint(graph, a);
-                        Binding<?> bEndpoint = direction.getEndpoint(graph, b);
-
-                        return bindingListPositionComparator.compare(bEndpoint, aEndpoint);
-                    });
-
-                    Binding<?> lastEndpoint = direction.getEndpoint(graph, edges.get(0));
-
-                    // Ignore the first edge.
-                    for (int i = 1; i < edges.size(); i++) {
-                        BindingEdge edge = edges.get(i);
-                        Binding<?> edgeEndpoint = direction.getEndpoint(graph, edge);
-
-                        graph.removeEdge(edge);
-                        direction.addEdge(graph, lastEndpoint, edgeEndpoint);
-
-                        lastEndpoint = edgeEndpoint;
-                    }
-                }
-            }
-        }
-
-        private void addExplicitEdge(BindingGraph graph, Binding<?> binding, Binding<?> succeedingBinding) {
-            try {
-                graph.addEdge(binding, succeedingBinding);
-            } catch (IllegalArgumentException e) {
-                throw cycleDetectedException(binding, succeedingBinding);
-            }
-        }
-
-        private Binding<?> findByClassOrThrow(Class<?> clazz) {
-            Binding<?> binding = context.orderedBindings.inverse().get(OrderedBinding.equalityToken(TypeLiteral.get(clazz)));
-
-            if (binding != null) {
-                return binding;
-            } else {
-                throw new UnableToResolveClassAsBindingException(clazz);
-            }
-        }
-
-        private boolean isImplicitCandidate(Binding<?> binding) {
-            OrderedBinding orderedBinding = context.orderedBindings.get(binding);
-
-            if (orderedBinding == null) {
-                return true;
-            } else {
-                Order order = orderedBinding.getOrder();
-                return order == null || (order.before().length == 0 && order.after().length == 0);
-            }
-        }
-
-        private CycleDetectedException cycleDetectedException(Binding<?> binding, Binding<?> otherBinding) {
-            OrderedBinding orderedBinding = context.orderedBindings.get(binding);
-            OrderedBinding otherOrderedBinding = context.orderedBindings.get(otherBinding);
-
-            return new CycleDetectedException(
-                    "Cycle detected between " + orderedBinding.getIdentifier() +
-                    " and " + otherOrderedBinding.getIdentifier() + ".");
-        }
-
-        private enum FlatteningDirection {
-            HEAD,
-            TAIL;
-
-            public <T, E> T getEndpoint(Graph<T, E> graph, E edge) {
-                return this == HEAD ?
-                        graph.getEdgeTarget(edge) :
-                        graph.getEdgeSource(edge);
-            }
-
-            public <T, E> void addEdge(Graph<T, E> graph, T a, T b) {
-                if (this == HEAD) {
-                    graph.addEdge(a, b);
-                } else {
-                    graph.addEdge(b, a);
-                }
-            }
-
-            public <T, E> Set<E> getEdges(Graph<T, E> graph, T vertex) {
-                return this == HEAD ?
-                        graph.outgoingEdgesOf(vertex) :
-                        graph.incomingEdgesOf(vertex);
-            }
+            return context.orderedBindings.get(binding).getIdentifier().getRawType().getSimpleName();
         }
     }
 
@@ -295,6 +166,113 @@ final class MultibinderSorter {
             }
 
             return map;
+        }
+    }
+
+    private final class BindingGraphFactory {
+        private final SortContext context;
+
+        BindingGraphFactory(SortContext context) {
+            this.context = context;
+        }
+
+        public BindingGraph createGraph() {
+            BindingGraph graph = new BindingGraph(context);
+
+            addVertexes(graph);
+            createImplicitEdges(graph);
+            createExplicitEdges(graph);
+
+            return graph;
+        }
+
+        private void addVertexes(BindingGraph graph) {
+            for (Binding<?> binding : context.bindings) {
+                graph.addVertex(binding);
+            }
+        }
+
+        private void createImplicitEdges(BindingGraph graph) {
+            List<Binding<?>> bindings = context.bindings;
+
+            Binding<?> lastImplicitBinding = null;
+            for (Binding<?> binding : bindings) {
+                if (isImplicitCandidate(binding)) {
+                    if (lastImplicitBinding != null) {
+                        BindingEdge edge = graph.addEdge(lastImplicitBinding, binding);
+                        edge.setExplicit(false);
+                    }
+
+                    lastImplicitBinding = binding;
+                }
+            }
+        }
+
+        private boolean isImplicitCandidate(Binding<?> binding) {
+            OrderedBinding orderedBinding = context.orderedBindings.get(binding);
+            Order order = orderedBinding.getOrder();
+
+            return order == null ||
+                   (order.before().length == 0 && order.after().length == 0 && order.position() == 0);
+        }
+
+        private void createExplicitEdges(BindingGraph graph) {
+            for (Binding<?> binding : context.bindings) {
+                Order order = context.orderedBindings.get(binding).getOrder();
+                if (order == null) {
+                    continue;
+                }
+
+                for (Class<?> beforeClass : order.before()) {
+                    Binding<?> succeedingBinding = findByClassOrHandle(beforeClass);
+                    if (succeedingBinding != null) {
+                        addExplicitEdge(graph, binding, succeedingBinding);
+                    }
+                }
+
+                for (Class<?> afterClass : order.after()) {
+                    Binding<?> precedingBinding = findByClassOrHandle(afterClass);
+                    if (precedingBinding != null) {
+                        addExplicitEdge(graph, precedingBinding, binding);
+                    }
+                }
+            }
+        }
+
+        private void addExplicitEdge(BindingGraph graph, Binding<?> binding, Binding<?> succeedingBinding) {
+            try {
+                graph.addEdge(binding, succeedingBinding);
+            } catch (IllegalArgumentException e) {
+                throw cycleDetectedException(binding, succeedingBinding);
+            }
+        }
+
+        private @Nullable Binding<?> findByClassOrHandle(Class<?> clazz) {
+            Binding<?> binding = context.orderedBindings.inverse().get(OrderedBinding.equalityToken(TypeLiteral.get(clazz)));
+
+            if (binding != null) {
+                return binding;
+            } else {
+                UnresolvableClassHandling handling = configuration.getUnresolvableClassHandling();
+
+                switch (handling) {
+                    case THROW:
+                        throw new UnableToResolveClassAsBindingException(clazz);
+                    case IGNORE:
+                        return null;
+                    default:
+                        throw new UnsupportedOperationException("Unknown handling: " + handling);
+                }
+            }
+        }
+
+        private CycleDetectedException cycleDetectedException(Binding<?> binding, Binding<?> otherBinding) {
+            OrderedBinding orderedBinding = context.orderedBindings.get(binding);
+            OrderedBinding otherOrderedBinding = context.orderedBindings.get(otherBinding);
+
+            return new CycleDetectedException(
+                    "Cycle detected between " + orderedBinding.getIdentifier() +
+                    " and " + otherOrderedBinding.getIdentifier() + ".");
         }
     }
 }
