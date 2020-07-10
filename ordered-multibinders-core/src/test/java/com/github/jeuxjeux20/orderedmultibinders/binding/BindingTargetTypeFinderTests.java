@@ -2,14 +2,15 @@ package com.github.jeuxjeux20.orderedmultibinders.binding;
 
 import com.github.jeuxjeux20.orderedmultibinders.Placeholders;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.BindingTargetTypeFinder;
-import com.google.inject.*;
+import com.google.inject.Binding;
 import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.TypeLiteral;
 import com.google.inject.spi.Elements;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

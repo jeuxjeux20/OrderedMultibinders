@@ -48,7 +48,7 @@ public final class OrderedMultibinders {
     /**
      * Sorts elements of the given {@link Module}s' multibinders using the given configuration.
      *
-     * @param modules the modules to sort
+     * @param modules       the modules to sort
      * @param configuration the configuration to use
      * @return the module with sorted multibinder elements
      */
@@ -59,7 +59,7 @@ public final class OrderedMultibinders {
     /**
      * Sorts elements of the given {@link Module}s' multibinders using the given configuration.
      *
-     * @param modules the modules to sort
+     * @param modules       the modules to sort
      * @param configuration the configuration to use
      * @return the module with sorted multibinder elements
      */

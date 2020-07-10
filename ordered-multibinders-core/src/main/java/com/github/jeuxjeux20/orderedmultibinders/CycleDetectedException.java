@@ -1,8 +1,5 @@
 package com.github.jeuxjeux20.orderedmultibinders;
 
-import com.google.inject.Binding;
-import com.google.inject.multibindings.Multibinder;
-
 /**
  * Thrown when an ordering cycle has been detected between two bindings.
  */

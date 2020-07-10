@@ -4,7 +4,8 @@ import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBinding;
 import com.google.inject.TypeLiteral;
 
 public final class TestOrderedBindings {
-    private TestOrderedBindings() {}
+    private TestOrderedBindings() {
+    }
 
     public static OrderedBinding createOrderedBinding(TypeLiteral<?> type) {
         return OrderedBinding.fromType(type, Placeholders.BINDING);

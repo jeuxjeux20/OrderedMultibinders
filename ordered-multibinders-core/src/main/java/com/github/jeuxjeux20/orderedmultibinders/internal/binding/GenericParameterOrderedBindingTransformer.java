@@ -1,7 +1,7 @@
 package com.github.jeuxjeux20.orderedmultibinders.internal.binding;
 
-import com.github.jeuxjeux20.orderedmultibinders.RedirectedByGenericParameter;
 import com.github.jeuxjeux20.orderedmultibinders.Order;
+import com.github.jeuxjeux20.orderedmultibinders.RedirectedByGenericParameter;
 import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBinding;
 import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBindingTransformer;
 import com.google.inject.TypeLiteral;
@@ -13,6 +13,11 @@ import java.lang.reflect.Type;
  * Applies the @{@link RedirectedByGenericParameter} annotation.
  */
 public class GenericParameterOrderedBindingTransformer implements OrderedBindingTransformer {
+    private static IllegalArgumentException cannotFindGenericArgument(Type actualType, int argumentIndex) {
+        return new IllegalArgumentException(
+                "Cannot find generic argument at index " + argumentIndex + " on identifier " + actualType);
+    }
+
     @Override
     public OrderedBinding transform(OrderedBinding orderedBinding) {
         TypeLiteral<?> type = orderedBinding.getIdentifier();
@@ -43,10 +48,5 @@ public class GenericParameterOrderedBindingTransformer implements OrderedBinding
         } else {
             throw cannotFindGenericArgument(actualType, argumentIndex);
         }
-    }
-
-    private static IllegalArgumentException cannotFindGenericArgument(Type actualType, int argumentIndex) {
-        return new IllegalArgumentException(
-                "Cannot find generic argument at index " + argumentIndex + " on identifier " + actualType);
     }
 }

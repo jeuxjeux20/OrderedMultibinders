@@ -2,7 +2,6 @@ package com.github.jeuxjeux20.orderedmultibinders;
 
 import com.google.inject.Binding;
 import com.google.inject.Key;
-import com.google.inject.internal.ConstantBindingBuilderImpl;
 import com.google.inject.internal.LinkedBindingImpl;
 import com.google.inject.internal.Scoping;
 

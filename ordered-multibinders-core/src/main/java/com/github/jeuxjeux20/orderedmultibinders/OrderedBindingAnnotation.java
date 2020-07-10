@@ -2,11 +2,7 @@ package com.github.jeuxjeux20.orderedmultibinders;
 
 import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBindingTransformer;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Specifies that the annotation is an identifier annotation that applies a {@link OrderedBindingTransformer}

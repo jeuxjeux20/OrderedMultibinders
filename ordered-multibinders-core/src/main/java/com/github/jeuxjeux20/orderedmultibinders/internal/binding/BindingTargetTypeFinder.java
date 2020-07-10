@@ -2,14 +2,7 @@ package com.github.jeuxjeux20.orderedmultibinders.internal.binding;
 
 import com.google.inject.Binding;
 import com.google.inject.TypeLiteral;
-import com.google.inject.spi.ConstructorBinding;
-import com.google.inject.spi.ConvertedConstantBinding;
-import com.google.inject.spi.InstanceBinding;
-import com.google.inject.spi.LinkedKeyBinding;
-import com.google.inject.spi.ProviderBinding;
-import com.google.inject.spi.ProviderInstanceBinding;
-import com.google.inject.spi.ProviderKeyBinding;
-import com.google.inject.spi.UntargettedBinding;
+import com.google.inject.spi.*;
 import org.jetbrains.annotations.Nullable;
 
 /**

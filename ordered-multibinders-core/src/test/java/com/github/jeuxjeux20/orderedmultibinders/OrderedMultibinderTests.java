@@ -1,7 +1,5 @@
 package com.github.jeuxjeux20.orderedmultibinders;
 
-import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBinding;
-import com.github.jeuxjeux20.orderedmultibinders.config.DefaultPositionProvider;
 import com.github.jeuxjeux20.orderedmultibinders.config.SortingConfiguration;
 import com.github.jeuxjeux20.orderedmultibinders.config.UnresolvableClassHandling;
 import com.google.common.collect.ImmutableList;
@@ -10,7 +8,6 @@ import com.google.inject.*;
 import com.google.inject.multibindings.Multibinder;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 

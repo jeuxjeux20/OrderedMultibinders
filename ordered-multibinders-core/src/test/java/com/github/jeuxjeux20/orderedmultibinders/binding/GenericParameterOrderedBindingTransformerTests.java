@@ -1,8 +1,8 @@
 package com.github.jeuxjeux20.orderedmultibinders.binding;
 
-import com.github.jeuxjeux20.orderedmultibinders.RedirectedByGenericParameter;
 import com.github.jeuxjeux20.orderedmultibinders.Order;
 import com.github.jeuxjeux20.orderedmultibinders.Placeholders;
+import com.github.jeuxjeux20.orderedmultibinders.RedirectedByGenericParameter;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.GenericParameterOrderedBindingTransformer;
 import com.google.inject.TypeLiteral;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ public class GenericParameterOrderedBindingTransformerTests extends OrderedBindi
     @Test
     void redirects_to_generic_argument() {
         testTransformer(TRANSFORMER,
-                createOrderedBinding(new TypeLiteral<GenericType<Argument>>(){}),
+                createOrderedBinding(new TypeLiteral<GenericType<Argument>>() {}),
                 createOrderedBinding(Argument.class, ARGUMENT_ANNOTATION));
     }
 

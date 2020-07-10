@@ -112,7 +112,7 @@ public final class OrderedBinding {
      * be wrapped using {@link TypeLiteral#get(Class)}, and the class's @{@link Order} annotation,
      * if there isn't any, the order will be {@code null}.
      *
-     * @param clazz the class used to identify the binding
+     * @param clazz   the class used to identify the binding
      * @param binding the actual binding
      * @return a ordered binding with the specified class, and, if present, the class' @{@link Order} annotation
      */
@@ -155,6 +155,7 @@ public final class OrderedBinding {
 
     /**
      * Gets the actual binding.
+     *
      * @return the actual binding
      */
     public Binding<?> getBinding() {
@@ -230,7 +231,7 @@ public final class OrderedBinding {
          * retrieves the @{@link Order} annotation from the given identifier.
          *
          * @param identifier the identifier that identifies a binding
-         * @param binding the actual binding
+         * @param binding    the actual binding
          */
         public Builder(TypeLiteral<?> identifier, Binding<?> binding) {
             this(OrderedBinding.fromType(identifier, binding));

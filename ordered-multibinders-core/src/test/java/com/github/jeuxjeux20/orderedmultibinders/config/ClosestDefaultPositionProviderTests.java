@@ -3,10 +3,7 @@ package com.github.jeuxjeux20.orderedmultibinders.config;
 import com.github.jeuxjeux20.orderedmultibinders.Order;
 import com.github.jeuxjeux20.orderedmultibinders.Placeholders;
 import com.github.jeuxjeux20.orderedmultibinders.binding.OrderedBinding;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.Objects;
 
 import static com.github.jeuxjeux20.orderedmultibinders.TestOrderedBindings.createOrderedBinding;
 import static org.junit.jupiter.api.Assertions.assertEquals;

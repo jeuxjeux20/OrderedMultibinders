@@ -3,7 +3,6 @@ package com.github.jeuxjeux20.orderedmultibinders.binding;
 import com.github.jeuxjeux20.orderedmultibinders.IdentifiedAs;
 import com.github.jeuxjeux20.orderedmultibinders.OrderedBindingAnnotation;
 import com.github.jeuxjeux20.orderedmultibinders.internal.binding.AnnotationsOrderedBindingTransformer;
-import com.google.inject.TypeLiteral;
 
 /**
  * A function that transforms a {@link OrderedBinding} into another one, with different values,

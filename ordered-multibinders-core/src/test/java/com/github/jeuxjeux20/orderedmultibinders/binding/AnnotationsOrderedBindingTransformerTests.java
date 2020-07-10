@@ -36,7 +36,7 @@ public class AnnotationsOrderedBindingTransformerTests extends OrderedBindingTra
     void processes_multiple_annotations() {
         testTransformer(TRANSFORMER,
                 createOrderedBinding(IWantToBeAListOfCats.class),
-                createOrderedBinding(new TypeLiteral<List<Placeholders.Cat>>(){}));
+                createOrderedBinding(new TypeLiteral<List<Placeholders.Cat>>() {}));
     }
 
     @Test
@@ -52,19 +52,6 @@ public class AnnotationsOrderedBindingTransformerTests extends OrderedBindingTra
 
         assertThrows(IllegalArgumentException.class, () -> TRANSFORMER.transform(binding));
     }
-
-    @Catify
-    static class IWantToBeACat {}
-
-    @Catify
-    @Listify
-    static class IWantToBeAListOfCats {}
-
-    @ApplyUninstantiableProcessor
-    static class UninstantiableProcessorThing {}
-
-    @ChangeToWantBeACat
-    static class IWantToBeACatButIndirectly {}
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
@@ -97,7 +84,8 @@ public class AnnotationsOrderedBindingTransformerTests extends OrderedBindingTra
     @OrderedBindingAnnotation(ApplyUninstantiableProcessor.Processor.class)
     @interface ApplyUninstantiableProcessor {
         class Processor implements OrderedBindingTransformer {
-            Processor(String blah) {}
+            Processor(String blah) {
+            }
 
             @Override
             public OrderedBinding transform(OrderedBinding orderedBinding) {
@@ -117,4 +105,17 @@ public class AnnotationsOrderedBindingTransformerTests extends OrderedBindingTra
             }
         }
     }
+
+    @Catify
+    static class IWantToBeACat {}
+
+    @Catify
+    @Listify
+    static class IWantToBeAListOfCats {}
+
+    @ApplyUninstantiableProcessor
+    static class UninstantiableProcessorThing {}
+
+    @ChangeToWantBeACat
+    static class IWantToBeACatButIndirectly {}
 }
