@@ -7,7 +7,8 @@
 </p>
 
 ### Resources
-* [Quick start](https://github.com/jeuxjeux20/OrderedMultibinders/wiki/Quick-start)
+* [Documentation](https://github.com/jeuxjeux20/OrderedMultibinders/wiki)
+* [Javadoc](https://jeuxjeux20.github.io/OrderedMultibinders/)
 
 ### What is this?
 OrderedMultibinders is a library for, well, making your multibinder elements **ordered** by sorting them.
