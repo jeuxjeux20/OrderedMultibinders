@@ -1,5 +1,6 @@
 package com.github.jeuxjeux20.orderedmultibinders.demo;
 
+import com.github.jeuxjeux20.orderedmultibinders.IdentifiedAs;
 import com.github.jeuxjeux20.orderedmultibinders.Order;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
