@@ -54,4 +54,13 @@ public class BakeACakeDemo extends DemoRunner {
 
     @Order(after = BakeInOven.class)
     static class AddSprinkles extends RecipeStep {}
+
+    // This class will not be used in a binding.
+    class Cat {}
+
+    @IdentifiedAs(Cat.class)
+    class SpecialAnimal {}
+
+    @Order(before = Cat.class)
+    class Dog {}
 }
