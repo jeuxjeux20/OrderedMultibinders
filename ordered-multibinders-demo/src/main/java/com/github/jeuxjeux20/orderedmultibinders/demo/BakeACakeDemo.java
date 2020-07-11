@@ -12,45 +12,45 @@ public class BakeACakeDemo extends DemoRunner {
     }
 
     public BakeACakeDemo(EnumSet<Detail> detail) {
-        super("Bake a cake", detail, new BaseCakeModule(), new SprinklesCakeModule());
+        super("Bake a cake", detail, new BasicCakeModule(), new SprinklesCakeModule());
     }
 
-    abstract static class RecipeOperation {
+    abstract static class RecipeStep {
         @Override
         public String toString() {
             return getClass().getSimpleName();
         }
     }
 
-    static final class BaseCakeModule extends AbstractModule {
+    static final class BasicCakeModule extends AbstractModule {
         @Override
         protected void configure() {
-            Multibinder<RecipeOperation> operations = Multibinder.newSetBinder(binder(), RecipeOperation.class);
+            Multibinder<RecipeStep> steps = Multibinder.newSetBinder(binder(), RecipeStep.class);
 
-            operations.addBinding().to(PreheatOven.class);
-            operations.addBinding().to(AddIngredients.class);
-            operations.addBinding().to(BakeInOven.class);
-            operations.addBinding().to(WaitUntilItIsColdEnough.class);
+            steps.addBinding().to(PreheatOven.class);
+            steps.addBinding().to(AddIngredients.class);
+            steps.addBinding().to(BakeInOven.class);
+            steps.addBinding().to(WaitUntilItIsColdEnough.class);
         }
     }
 
-    static class PreheatOven extends RecipeOperation {}
+    static class PreheatOven extends RecipeStep {}
 
-    static class AddIngredients extends RecipeOperation {}
+    static class AddIngredients extends RecipeStep {}
 
-    static class BakeInOven extends RecipeOperation {}
+    static class BakeInOven extends RecipeStep {}
 
-    static class WaitUntilItIsColdEnough extends RecipeOperation {}
+    static class WaitUntilItIsColdEnough extends RecipeStep {}
 
     static final class SprinklesCakeModule extends AbstractModule {
         @Override
         protected void configure() {
-            Multibinder<RecipeOperation> operations = Multibinder.newSetBinder(binder(), RecipeOperation.class);
+            Multibinder<RecipeStep> operations = Multibinder.newSetBinder(binder(), RecipeStep.class);
 
             operations.addBinding().to(AddSprinkles.class);
         }
     }
 
     @Order(after = BakeInOven.class)
-    static class AddSprinkles extends RecipeOperation {}
+    static class AddSprinkles extends RecipeStep {}
 }
