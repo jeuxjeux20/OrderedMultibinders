@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">OrderedMultibinders</h1>
 <p align="center">
-  A library to order <a href="https://github.com/google/guice">Guice</a> multibindings using annotations.
+  A library to order elements of <a href="https://github.com/google/guice">Guice</a> multibinders using annotations.
 </p>
 
 ### Resources
