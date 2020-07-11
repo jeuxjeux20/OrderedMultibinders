@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.github.jeuxjeux20.orderedmultibinders"},{"l":"com.github.jeuxjeux20.orderedmultibinders.binding"},{"l":"com.github.jeuxjeux20.orderedmultibinders.config"},{"l":"com.github.jeuxjeux20.orderedmultibinders.util"}]
