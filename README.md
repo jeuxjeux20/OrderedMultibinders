@@ -11,7 +11,7 @@
 * [Javadoc](https://jeuxjeux20.github.io/OrderedMultibinders/)
 
 ### What is this?
-OrderedMultibinders is a library for, well, making your multibinder elements **ordered** by sorting them.
+OrderedMultibinders is a library for, well, ordering elements multibinder elements with relative constraints (X comes before Y).
 
 While putting bindings in the right order in your modules works, it becomes cumbersome once you use many modules, a module might come after another and break the ordering you wanted!
 
