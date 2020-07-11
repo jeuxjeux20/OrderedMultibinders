@@ -1,5 +1,6 @@
 package com.github.jeuxjeux20.orderedmultibinders.demo;
 
+import com.github.jeuxjeux20.orderedmultibinders.IdentifiedAs;
 import com.github.jeuxjeux20.orderedmultibinders.Order;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
@@ -53,4 +54,13 @@ public class BakeACakeDemo extends DemoRunner {
 
     @Order(after = BakeInOven.class)
     static class AddSprinkles extends RecipeStep {}
+
+    // This class will not be used in a binding.
+    class Cat {}
+
+    @IdentifiedAs(Cat.class)
+    class SpecialAnimal {}
+
+    @Order(before = Cat.class)
+    class Dog {}
 }

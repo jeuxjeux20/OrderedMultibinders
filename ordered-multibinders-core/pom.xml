@@ -7,11 +7,11 @@
     <parent>
         <artifactId>ordered-multibinders</artifactId>
         <groupId>com.github.jeuxjeux20</groupId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <artifactId>ordered-multibinders-core</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
 
     <build>
         <plugins>
@@ -41,6 +41,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

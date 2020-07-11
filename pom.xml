@@ -7,7 +7,7 @@
     <groupId>com.github.jeuxjeux20</groupId>
     <artifactId>ordered-multibinders</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>1.0.1</version>
 
     <name>OrderedMultibinders</name>
     <description>Order Guice multibinder elements with annotations.</description>
